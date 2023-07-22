@@ -2,12 +2,15 @@ package com.anderlonva.backendhelpmeiud.service.impl;
 
 import com.anderlonva.backendhelpmeiud.dto.request.DelitoDTORequest;
 import com.anderlonva.backendhelpmeiud.dto.response.DelitoDTO;
+import com.anderlonva.backendhelpmeiud.exceptions.BadRequestException;
+import com.anderlonva.backendhelpmeiud.exceptions.ErrorDto;
 import com.anderlonva.backendhelpmeiud.model.Delito;
 import com.anderlonva.backendhelpmeiud.model.Usuario;
 import com.anderlonva.backendhelpmeiud.repository.IDelitoRepository;
 import com.anderlonva.backendhelpmeiud.repository.IUsuarioRepository;
 import com.anderlonva.backendhelpmeiud.service.iface.IDelitoService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -43,14 +46,17 @@ public class DelitoServiceImpl implements IDelitoService {
 
     @Override
     @Transactional
-    public DelitoDTO guardarDelito(DelitoDTORequest delitoDTORequest) {
+    public DelitoDTO guardarDelito(DelitoDTORequest delitoDTORequest) throws BadRequestException {
         Delito delito = new Delito();
         delito.setNombre(delitoDTORequest.getNombre());
         delito.setDescripcion(delitoDTORequest.getDescripcion());
 
         Optional<Usuario> usuarioOptional = usuarioRepository.findById(delitoDTORequest.getUsuarioId());
         if (!usuarioOptional.isPresent()){
-            return null;
+            throw new BadRequestException(ErrorDto.builder()
+                    .status(HttpStatus.BAD_REQUEST.value()).message("no existe usuario").
+                    error(HttpStatus.BAD_REQUEST.getReasonPhrase()).build()
+            );
         }
         delito.setUsuario(usuarioOptional.get());
         delito = delitoRepository.save(delito);

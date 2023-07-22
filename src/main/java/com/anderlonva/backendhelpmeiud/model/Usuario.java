@@ -47,7 +47,7 @@ public class Usuario implements Serializable {
     @Column
     Boolean estado;
 
-    @ManyToMany(fetch = FetchType.LAZY)
+    @ManyToMany(fetch = FetchType.EAGER)
             @JoinTable(
                     name = "roles_usuarios",
                     joinColumns = {@JoinColumn(name = "usuarios_id")},

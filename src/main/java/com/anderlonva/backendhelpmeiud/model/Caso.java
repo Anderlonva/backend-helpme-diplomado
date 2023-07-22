@@ -38,8 +38,14 @@ public class Caso implements Serializable {
     @Column
     String descripcion;
 
-    @Column
-    Boolean esvisible;
+    @Column(name = "es_visible")
+    Boolean esVisible;
+
+    @Column(name = "url_map")
+    String urlMap;
+
+    @Column(name = "rmi_url")
+    String rmiUrl;
 
     @ManyToOne
             @JoinColumn(name = "usuarios_id")
