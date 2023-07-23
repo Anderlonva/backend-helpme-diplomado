@@ -12,6 +12,7 @@ import io.swagger.annotations.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.annotation.Secured;
 import org.springframework.web.bind.annotation.*;
 
 
@@ -34,6 +35,7 @@ public class DelitoController {
     }
 
     @ApiOperation(value = "Crea delito", response = DelitoDTO.class, responseContainer = "DelitoDTO", produces = "application/json", httpMethod = "POST")
+    @Secured("ROLE_ADMIN")
     @PostMapping
     @ResponseStatus(code = HttpStatus.CREATED)
     public ResponseEntity<DelitoDTO> create(@Valid @RequestBody DelitoDTORequest delitoDTORequest) throws BadRequestException {

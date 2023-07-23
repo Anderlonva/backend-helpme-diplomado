@@ -5,15 +5,18 @@ import com.anderlonva.backendhelpmeiud.dto.response.DelitoDTO;
 import com.anderlonva.backendhelpmeiud.dto.response.UsuarioDTO;
 import com.anderlonva.backendhelpmeiud.exceptions.BadRequestException;
 import com.anderlonva.backendhelpmeiud.exceptions.ErrorDto;
+import com.anderlonva.backendhelpmeiud.exceptions.RestException;
 import com.anderlonva.backendhelpmeiud.model.Rol;
 import com.anderlonva.backendhelpmeiud.model.Usuario;
 import com.anderlonva.backendhelpmeiud.repository.IUsuarioRepository;
 import com.anderlonva.backendhelpmeiud.service.iface.IUsuarioService;
+import com.anderlonva.backendhelpmeiud.util.ConstUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.User;
@@ -50,7 +53,7 @@ public class UsuarioServiceImpl implements IUsuarioService , UserDetailsService 
     public List<UsuarioDTO> consultarTodos() {
         List<Usuario> usuarios = usuarioRepository.findAll();
         List<UsuarioDTO> usuarioDTOS = usuarios.stream().map(usuario -> {
-            return UsuarioDTO.builder().username(usuario.getUsername()).nomnbre(usuario.getNombre()).apellido(usuario.getApellido())
+            return UsuarioDTO.builder().username(usuario.getUsername()).nombre(usuario.getNombre()).apellido(usuario.getApellido())
                     .fechaNacimiento(usuario.getFechaNacimiento()).image(usuario.getImage()).redSocial(usuario.getRedSocial()).estado(usuario.getEstado())
                     .build(); // falta llamar el id del rol
         }).collect(Collectors.toList());
@@ -90,7 +93,7 @@ public class UsuarioServiceImpl implements IUsuarioService , UserDetailsService 
         usuario  = new Usuario();
        // log.info("password cifrada{}", passwordEncoder.encode(usuarioDTORequest.getPassword()));
         usuario.setUsername(usuarioDTORequest.getUsername());
-        usuario.setNombre(usuarioDTORequest.getNomnbre());
+        usuario.setNombre(usuarioDTORequest.getNombre());
         usuario.setApellido(usuarioDTORequest.getApellido());
         usuario.setPassword(passwordEncoder.encode(usuarioDTORequest.getPassword())); // ciframos el password
         usuario.setFechaNacimiento(usuarioDTORequest.getFechaNacimiento());
@@ -114,7 +117,7 @@ public class UsuarioServiceImpl implements IUsuarioService , UserDetailsService 
 
         }
 
-        return UsuarioDTO.builder().username(usuario.getUsername()).nomnbre(usuario.getNombre()).apellido(usuario.getApellido()).fechaNacimiento(usuario.getFechaNacimiento())
+        return UsuarioDTO.builder().username(usuario.getUsername()).nombre(usuario.getNombre()).apellido(usuario.getApellido()).fechaNacimiento(usuario.getFechaNacimiento())
                 .estado(usuario.getEstado()).image(usuario.getImage()).redSocial(usuario.getRedSocial()).rolId(usuario.getRoles().get(0).getId()).build();
     }
 
@@ -122,6 +125,49 @@ public class UsuarioServiceImpl implements IUsuarioService , UserDetailsService 
     @Transactional(readOnly = true)
     public Usuario findByUsername(String username) {
         return usuarioRepository.findByUsername(username);
+    }
+
+    @Override
+    public UsuarioDTO userInfo(Authentication authentication) throws RestException {
+        if(!authentication.isAuthenticated()) {
+            throw new RestException(
+                    ErrorDto.builder()
+                            .error(HttpStatus.UNAUTHORIZED.getReasonPhrase())
+                            .message(ConstUtil.MESSAGE_NOT_AUTHORIZED)
+                            .status(HttpStatus.UNAUTHORIZED.value())
+                            .date(LocalDateTime.now())
+                            .build()
+            );
+        }
+        String userName = authentication.getName();
+        Usuario usuario = usuarioRepository.findByUsername(userName);
+        if(usuario==null) {
+            throw new RestException(
+                    ErrorDto.builder()
+                            .error(HttpStatus.UNAUTHORIZED.getReasonPhrase())
+                            .message(ConstUtil.MESSAGE_NOT_AUTHORIZED)
+                            .status(HttpStatus.UNAUTHORIZED.value())
+                            .date(LocalDateTime.now())
+                            .build()
+            );
+        }
+        UsuarioDTO usuarioDTO = UsuarioDTO.builder()
+                .id(usuario.getId())
+                .nombre(usuario.getNombre())
+                .apellido(usuario.getApellido())
+                .fechaNacimiento(usuario.getFechaNacimiento())
+                .image(usuario.getImage())
+                .roles(usuario.getRoles()
+                        .stream().map(r -> r.getNombre())
+                        .collect(Collectors.toList()))
+                .username(usuario.getUsername())
+                .build();
+        return usuarioDTO;
+    }
+
+    @Override
+    public Usuario actualizar(Usuario usuario) throws RestException {
+        return null;
     }
 
 

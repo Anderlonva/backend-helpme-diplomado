@@ -36,7 +36,7 @@ public class ResourceServerConfig extends ResourceServerConfigurerAdapter{
 		// pero lo haremos más sencillo con anotaciones @Secured
 		.antMatchers(HttpMethod.GET, "/delitos").permitAll()
 		
-		.antMatchers(HttpMethod.POST, "/usuarios/signup**").permitAll()
+		.antMatchers(HttpMethod.POST, "/usuarios","/usuarios/signup**").permitAll()
 		.antMatchers(HttpMethod.OPTIONS, "/usuarios/signup**").permitAll()	
 		
 		.antMatchers(HttpMethod.GET, "/casos", "/casos/caso/**").permitAll()

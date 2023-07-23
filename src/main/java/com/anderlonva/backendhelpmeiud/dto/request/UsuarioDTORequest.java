@@ -24,7 +24,7 @@ public class UsuarioDTORequest {
 
     @NotNull(message = "nombre obligatorio")
     @NotBlank(message = "nombre requerido")
-    String nomnbre;
+    String nombre;
 
     @Size(min = 2, max = 120)
     String apellido;

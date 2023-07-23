@@ -11,6 +11,7 @@ import io.swagger.annotations.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.annotation.Secured;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
@@ -33,6 +34,7 @@ public class CasoController {
     }
 
 
+    @Secured({"ROLE_ADMIN", "ROLE_USER"})
     @ApiOperation(value = "Crea un Caso", response = CasoDTO.class, responseContainer = "DelitoDTO", produces = "application/json", httpMethod = "POST")
     @PostMapping
     @ResponseStatus(code = HttpStatus.CREATED)
@@ -42,3 +44,6 @@ public class CasoController {
 
 
 }
+
+// minuto 58
+// https://drive.google.com/file/d/1mmRZm260--omcIH0MvtTad5DTsyZhYN5/view
