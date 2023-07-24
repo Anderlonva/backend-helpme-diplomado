@@ -5,8 +5,10 @@ package com.anderlonva.backendhelpmeiud.service.iface;
 import com.anderlonva.backendhelpmeiud.dto.request.UsuarioDTORequest;
 import com.anderlonva.backendhelpmeiud.dto.response.UsuarioDTO;
 import com.anderlonva.backendhelpmeiud.exceptions.BadRequestException;
+import com.anderlonva.backendhelpmeiud.exceptions.InternalServerErrorException;
 import com.anderlonva.backendhelpmeiud.exceptions.RestException;
 import com.anderlonva.backendhelpmeiud.model.Usuario;
+import org.springframework.core.io.Resource;
 import org.springframework.security.core.Authentication;
 
 import java.util.List;
@@ -27,4 +29,5 @@ public interface IUsuarioService {
 
     Usuario actualizar(Usuario usuario) throws RestException;
 
+    Resource getImage(String name) throws InternalServerErrorException;
 }

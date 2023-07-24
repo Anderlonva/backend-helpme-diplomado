@@ -13,15 +13,28 @@ import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.SwaggerDefinition;
 import io.swagger.annotations.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.UrlResource;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.security.PermitAll;
 import javax.validation.Valid;
+import java.io.File;
+import java.io.IOException;
+import java.net.MalformedURLException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/usuarios")
@@ -102,8 +115,52 @@ public class UsuarioController {
     }
 
 
+    @PostMapping("/upload")
+    public ResponseEntity<?> upload(@RequestParam("image") MultipartFile image, Authentication authentication) throws RestException{
+        // TODO: PASAR LOGICA DE NEGOCIOS AL SERVICE
+        Map<String, Object> response = new HashMap<>();
+        Usuario usuario = iUsuarioService.findByUsername(authentication.getName());
+        if(!image.isEmpty()) {
+            String nombreImage = UUID.randomUUID().toString()+"_"+image.getOriginalFilename().replace(" ", "");
+            Path path = Paths.get("uploads").resolve(nombreImage).toAbsolutePath();
+            try {
+                Files.copy(image.getInputStream(), path);
+            }catch (IOException e) {
+                response.put("Error", e.getMessage().concat(e.getCause().getMessage()));
+                return new ResponseEntity<Map<String, Object>>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+            }
+
+            String oldImage = usuario.getImage();
+
+            if(oldImage != null && oldImage.length() > 0 && !oldImage.startsWith("http")) {
+                Path oldPath = Paths.get("uploads").resolve(oldImage).toAbsolutePath();
+                File oldFileImage = oldPath.toFile();
+                if(oldFileImage.exists() && oldFileImage.canRead()) {
+                    oldFileImage.delete();
+                }
+            }
+
+            usuario.setImage(nombreImage);
+            iUsuarioService.actualizar(usuario);
+            response.put("usuario", usuario);
+        }
+        return new ResponseEntity<>(response, HttpStatus.CREATED);
+    }
+
+
+    @GetMapping("/uploads/img/{name:.+}")
+    public ResponseEntity<Resource> getImage(@PathVariable String name) throws InternalServerErrorException {
+        Resource resource = iUsuarioService.getImage(name);
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.add(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\""+ resource.getFilename() + "\"");
+        return new ResponseEntity<Resource>(resource, headers, HttpStatus.OK);
+
+    }
+
+
 
 }
 
-// minuto 58
+// minuto 2:53
 // https://drive.google.com/file/d/1mmRZm260--omcIH0MvtTad5DTsyZhYN5/view
